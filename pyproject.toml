@@ -1,0 +1,21 @@
+[project]
+name = "p2p"
+version = "0.1.0"
+description = "Dead-simple peer-to-peer WebRTC chat with copy-paste signaling."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["aiortc>=1.9"]
+
+# Run the verbs without a filename (e.g. uvx --from git+<url> create):
+#   create   (machine A: prints an OFFER token)
+#   answer   (machine B: prints an ANSWER token)
+[project.scripts]
+create = "p2p:create_cmd"
+answer = "p2p:answer_cmd"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+include = ["p2p.py"]

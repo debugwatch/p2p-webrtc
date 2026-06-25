@@ -1,0 +1,8 @@
+# uv / Python build artifacts
+.venv/
+__pycache__/
+*.pyc
+
+# Transient WebRTC session tokens (regenerated each run)
+offer_token.txt
+answer_token.txt
