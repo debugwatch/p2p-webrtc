@@ -5,18 +5,18 @@ two machines exchange two short text tokens and talk directly.
 
 ## Use it (no clone, no install)
 
-You only need [uv](https://docs.astral.sh/uv/). Replace `<you>/<repo>` with this
+You only need [uv](https://docs.astral.sh/uv/). Replace `debugwatch/p2p-webrtc` with this
 repository.
 
 **Machine A:**
 ```
-uvx --from git+https://github.com/<you>/<repo> create
+uvx --from git+https://github.com/debugwatch/p2p-webrtc create
 ```
 Prints an **OFFER** token. Send it to machine B.
 
 **Machine B:**
 ```
-uvx --from git+https://github.com/<you>/<repo> answer
+uvx --from git+https://github.com/debugwatch/p2p-webrtc answer
 ```
 Paste the OFFER when asked; it prints an **ANSWER** token. Send that back to A.
 
