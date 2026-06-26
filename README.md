@@ -31,3 +31,5 @@ other machine prefixed with `<`.
 - `create` must stay running until connected — its keys and sockets live in memory.
 - Uses a public STUN server. If **both** peers are behind strict/symmetric NATs the
   connection may never complete; that case needs a TURN relay.
+- Progress logs (ICE/DTLS/data-channel state) print to **stderr**; set `P2P_QUIET=1`
+  to silence them. They don't interfere with the tokens or chat on stdout.
