@@ -1,17 +1,15 @@
 [project]
 name = "p2p"
-version = "0.1.0"
+version = "0.2.0"
 description = "Dead-simple peer-to-peer WebRTC chat with copy-paste signaling."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["aiortc>=1.9"]
 
-# Run the verbs without a filename (e.g. uvx --from git+<url> create):
-#   create   (machine A: prints an OFFER token)
-#   answer   (machine B: prints an ANSWER token)
+# One command for both peers (e.g. uvx --from git+<url> connect).
+# Role is inferred: Enter to start (offerer), or paste the peer's OFFER (answerer).
 [project.scripts]
-create = "p2p:create_cmd"
-answer = "p2p:answer_cmd"
+connect = "p2p:connect_cmd"
 
 [build-system]
 requires = ["hatchling"]

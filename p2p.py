@@ -4,9 +4,14 @@
 # ///
 """Peer-to-peer chat over WebRTC. No server, just copy-paste two tokens.
 
-  Machine A:  uvx --from git+<repo-url> create   # prints an OFFER token
-  Machine B:  uvx --from git+<repo-url> answer   # paste OFFER -> prints an ANSWER token
-  Machine A:  paste the ANSWER when asked        # -> connected
+Both machines run the SAME command:
+
+  uvx --from git+<repo-url> connect   (or: uv run <raw-url> connect)
+
+Your role is inferred from whether you have a token:
+  - Machine A: press Enter to start  -> prints an OFFER token
+  - Machine B: paste A's OFFER        -> prints an ANSWER token
+  - Machine A: paste the ANSWER       -> connected
 
 Tokens are plain text; send them over any chat/email. Once both say
 [connected], type a line and press Enter to send it to the other side.
@@ -104,10 +109,9 @@ async def chat(channel):
         log(f"send: {len(msg.encode())} bytes over data channel")
 
 
-async def create():
-    log("starting (role: create/offerer)")
-    pc = RTCPeerConnection(CFG)
-    watch(pc)
+async def be_offerer(pc):
+    """No token in hand: create the offer, then wait for the peer's answer."""
+    log("no token -> you are the offerer (starting a new connection)")
     channel = pc.createDataChannel("chat")
     opened = asyncio.Event()
 
@@ -133,10 +137,9 @@ async def create():
     await chat(channel)
 
 
-async def answer():
-    log("starting (role: answer)")
-    pc = RTCPeerConnection(CFG)
-    watch(pc)
+async def be_answerer(pc, offer_token):
+    """Token in hand (the peer's offer): produce an answer and connect."""
+    log("token provided -> you are the answerer (joining an existing connection)")
     ready = asyncio.get_running_loop().create_future()
 
     @pc.on("datachannel")
@@ -157,15 +160,31 @@ async def answer():
         else:
             channel.on("open", done)
 
-    desc = await prompt_token("Paste the OFFER token, then Enter:", "OFFER")
-    if desc is None:
-        sys.exit("No offer given.")
-    log("got OFFER; creating answer and gathering ICE candidates...")
+    try:
+        desc = dec(offer_token)
+    except Exception:
+        desc = await prompt_token("That wasn't a valid OFFER token. Paste it again, then Enter:", "OFFER")
+        if desc is None:
+            sys.exit("No offer given.")
     await pc.setRemoteDescription(desc)
+    log("got OFFER; creating answer and gathering ICE candidates...")
     await pc.setLocalDescription(await pc.createAnswer())
     emit("ANSWER", enc(pc.localDescription))
     print("Send the ANSWER back, then wait for the other machine to connect...", flush=True)
     await chat(await ready)
+
+
+async def connect():
+    """One command for both peers: your role is decided by whether you have a token.
+    Press Enter to start a connection (offerer), or paste the peer's OFFER (answerer)."""
+    pc = RTCPeerConnection(CFG)
+    watch(pc)
+    token = await line(
+        "Paste the peer's OFFER token to join, or press Enter to start a new connection:")
+    if not token:
+        await be_offerer(pc)
+    else:
+        await be_answerer(pc, token)
 
 
 def run(coro):
@@ -175,22 +194,15 @@ def run(coro):
         sys.exit(130)
 
 
-def create_cmd():
-    run(create())
-
-
-def answer_cmd():
-    run(answer())
+def connect_cmd():
+    run(connect())
 
 
 def main():
-    cmd = sys.argv[1] if len(sys.argv) > 1 else ""
-    if cmd == "create":
-        create_cmd()
-    elif cmd == "answer":
-        answer_cmd()
-    else:
-        sys.exit("usage: p2p create | p2p answer")
+    args = sys.argv[1:]
+    if args and args[0] != "connect":
+        sys.exit("usage: p2p [connect]")
+    run(connect())
 
 
 if __name__ == "__main__":
