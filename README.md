@@ -5,8 +5,7 @@ two machines exchange two short text tokens and talk directly.
 
 ## Use it (no clone, no install)
 
-You only need [uv](https://docs.astral.sh/uv/). Replace `debugwatch/p2p-webrtc` with this
-repository.
+You only need [uv](https://docs.astral.sh/uv/).
 
 **Machine A:**
 ```
@@ -24,6 +23,16 @@ Paste the OFFER when asked; it prints an **ANSWER** token. Send that back to A.
 
 Both sides print `[connected]` — type a line, press Enter, and it appears on the
 other machine prefixed with `<`.
+
+## Run straight from the URL (no clone, no build)
+
+`uv run` executes the single file directly from its raw URL (it installs the
+inline `aiortc` dependency automatically):
+```
+uv run https://raw.githubusercontent.com/debugwatch/p2p-webrtc/main/p2p.py create
+uv run https://raw.githubusercontent.com/debugwatch/p2p-webrtc/main/p2p.py answer
+```
+`main` serves the latest commit; put a commit SHA in place of `main` to pin a version.
 
 ## Notes
 
