@@ -4,14 +4,14 @@
 # ///
 """Peer-to-peer chat over WebRTC. No server, just copy-paste two tokens.
 
-Both machines run the SAME command:
+Both machines run the SAME command; the role is set by the argument:
 
-  uvx --from git+<repo-url> connect   (or: uv run <raw-url> connect)
+  - Machine A:  connect                  -> prints an OFFER token
+  - Machine B:  connect <OFFER-TOKEN>    -> prints an ANSWER token
+  - Machine A:  paste the ANSWER when asked  -> connected
 
-Your role is inferred from whether you have a token:
-  - Machine A: press Enter to start  -> prints an OFFER token
-  - Machine B: paste A's OFFER        -> prints an ANSWER token
-  - Machine A: paste the ANSWER       -> connected
+  e.g.  uvx --from git+<repo-url> connect
+        uvx --from git+<repo-url> connect eNqr...   (the OFFER from machine A)
 
 Tokens are plain text; send them over any chat/email. Once both say
 [connected], type a line and press Enter to send it to the other side.
@@ -174,17 +174,16 @@ async def be_answerer(pc, offer_token):
     await chat(await ready)
 
 
-async def connect():
-    """One command for both peers: your role is decided by whether you have a token.
-    Press Enter to start a connection (offerer), or paste the peer's OFFER (answerer)."""
+async def connect(offer_token=None):
+    """One command for both peers, role set by the argument:
+      connect                -> start a new connection, print an OFFER (offerer)
+      connect <OFFER-TOKEN>  -> use the token as the peer's OFFER (answerer)"""
     pc = RTCPeerConnection(CFG)
     watch(pc)
-    token = await line(
-        "Paste the peer's OFFER token to join, or press Enter to start a new connection:")
-    if not token:
-        await be_offerer(pc)
+    if offer_token:
+        await be_answerer(pc, offer_token)
     else:
-        await be_answerer(pc, token)
+        await be_offerer(pc)
 
 
 def run(coro):
@@ -194,15 +193,21 @@ def run(coro):
         sys.exit(130)
 
 
+def _token_from_argv():
+    """Token = the argument after an optional leading 'connect'. Works both as a
+    console script (`connect <TOKEN>`) and as a file (`p2p.py connect <TOKEN>`)."""
+    args = sys.argv[1:]
+    if args and args[0] == "connect":
+        args = args[1:]
+    return args[0] if args else None
+
+
 def connect_cmd():
-    run(connect())
+    run(connect(_token_from_argv()))
 
 
 def main():
-    args = sys.argv[1:]
-    if args and args[0] != "connect":
-        sys.exit("usage: p2p [connect]")
-    run(connect())
+    run(connect(_token_from_argv()))
 
 
 if __name__ == "__main__":

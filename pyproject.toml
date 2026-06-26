@@ -1,6 +1,6 @@
 [project]
 name = "p2p"
-version = "0.2.0"
+version = "0.3.0"
 description = "Dead-simple peer-to-peer WebRTC chat with copy-paste signaling."
 readme = "README.md"
 requires-python = ">=3.10"
